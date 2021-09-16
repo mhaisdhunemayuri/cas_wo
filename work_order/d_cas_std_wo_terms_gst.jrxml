@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="lyd_std_po_terms_gst" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="96901acb-49db-4dd1-bc73-245ae31990dc">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="lhr_poterm_tbl" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+row_number() over(order by input_nos) sr_no
+,b.DESCR
+from PUR_TERM_TABLE a, PUR_TERM b
+where a.term_code = b.term_code
+and a.term_table = (Case when '$P!{lhr_poterm_tbl}' = 'NA' then 'LPT01' else '$P!{lhr_poterm_tbl}' end)
+and b.PRINT_YN = 'Y']]>
+	</queryString>
+	<field name="SR_NO" class="java.math.BigDecimal"/>
+	<field name="DESCR" class="java.lang.String"/>
+	<sortField name="SR_NO"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="5" y="0" width="11" height="13" uuid="40fb7dd4-8e50-4575-8247-dd351be4f22c"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{SR_NO}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="18" y="0" width="559" height="13" uuid="cc8ae97b-2acb-4871-8ac4-aeeeb8d251d3"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DESCR}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,1073 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Work_Order" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="3086b410-6fc7-4792-8604-1e0e5b483bea">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="67"/>
+	<parameter name="site_code" class="java.lang.String"/>
+	<parameter name="purc_order_fr" class="java.lang.String"/>
+	<parameter name="purc_order_to" class="java.lang.String"/>
+	<parameter name="ord_date_fr" class="java.util.Date"/>
+	<parameter name="ord_date_to" class="java.util.Date"/>
+	<parameter name="supplier_code_fr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="supplier_code_to" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT
+--ACTIVITY_CODE__PARENT,
+a.purc_order as po_no,
+a.ord_date as po_date,
+a.ORD_AMT ,
+fn_numbertoword(a.ORD_AMT) AMOUNTINWORD,
+a.SITE_CODE__ORD,
+b.DESCR as site_desc,
+b.ADD1 as site_add1,
+b.ADD2 as site_add2,
+b.CITY as site_city,
+b.UDF1 as sector_no,
+upper(c.DESCR) as fin_descr,
+c.ADDR1 as fin_add1,
+c.ADDR2 as fin_add2,
+c.ADDR3 as fin_add3,
+c.CITY as fin_city,
+c.PIN as fin_pin,
+c.TELE1 as fin_tele1,
+d.SUPP_NAME,
+d.SUPP_CODE,
+d.ADDR1,
+d.ADDR2,
+d.ADDR3,
+d.CITY,
+d.PIN,
+d.PAN_NO,
+case when d.CONT_PERS is null then ''
+when d.CONT_PFX is null then nvl(d.CONT_PERS,'') else (nvl(d.CONT_PFX,'') || ' ' || nvl(d.CONT_PERS,'')) end AS CONT_PERS,
+
+d.TELE1,
+d.EMAIL_ADDR,
+d.CST_NO,
+d.TAX_REG_2,
+e.QUOT_DATE,
+a.TERM_TABLE,
+a.udf_str__1 as hold_per,
+to_char(e.QUOT_DATE, 'ddth Mon yyyy') as QUOT_DATE_new,
+--LISTAGG(distinct FLD_NAME,',') as
+nvl(g.descr,'') as activity,
+min(f.start_date) as schedule_start_date,
+max(f.end_date) as schedule_end_date,
+h.rel_amt ret_perc,
+--i.DESCR as DEPT_NAME,
+(SELECT descr FROM GENCODES WHERE MOD_NAME='W_PORDER' AND FLD_NAME='UDF_STR__1' and fld_value = a.UDF_STR__1) as DEPT_NAME_new,
+(SELECT descr FROM GENCODES WHERE MOD_NAME='W_PORDER' AND FLD_NAME='UDF_STR__2' and fld_value = a.UDF_STR__2) as supplier_prod,
+s.pf_reg_No as PF_NO,
+round(h.rel_after/30,0) as no_of_mnth
+FROM PORDER a
+inner join DEPARTMENT i on a.DEPT_CODE= i.DEPT_CODE
+inner join site b on a.SITE_CODE__ORD=b.SITE_CODE
+inner join finent c on b.FIN_ENTITY=c.FIN_ENTITY
+inner join SUPPLIER d on a.SUPP_CODE=d.SUPP_CODE
+left join SUPPLIER_OTHER_INFO s on d.SUPP_CODE = s.SUPP_CODE
+left join PQUOT_HDR e on e.QUOT_NO = a.QUOT_NO
+INNER JOIN PROJ_EST_BSL_ITEM f on a.PURC_ORDER=f.PURC_ORDER
+INNER join GENCODES g on f.ACTIVITY_CODE__PARENT = g.FLD_VALUE
+--INNER join Activity g on f.ACTIVITY_CODE__PARENT = g.ACTIVITY_PARENT
+left join pord_pay_term h on h.rel_agnst='04' and a.purc_order=h.purc_order
+where a.PORD_TYPE='JW'
+and ACTIVITY_CODE__PARENT is not null
+and  FLD_NAME='ACTIVITY_PARENT' AND MOD_NAME='ACTIVITY'
+/*and a.SITE_CODE__ORD = 'S0008'
+and a.ord_date >= '08-SEP-2021'
+and a.ord_date <= '15-SEP-2021'
+and a.purc_order >='08P6G0002'
+and a.purc_order <='08P6G0002'*/
+and a.SITE_CODE__ORD = '$P!{site_code}'
+and a.ord_date >= $P{ord_date_fr}
+and a.ord_date <= $P{ord_date_to}
+and a.purc_order >='$P!{purc_order_fr}'
+and a.purc_order <='$P!{purc_order_to}'
+and d.SUPP_CODE >= '$P!{supplier_code_fr}'
+AND d.SUPP_CODE <='$P!{supplier_code_to}'
+group by a.purc_order ,
+a.ord_date ,
+a.ORD_AMT ,
+a.SITE_CODE__ORD,
+b.DESCR ,
+b.ADD1 ,
+b.ADD2 ,
+b.CITY ,
+b.UDF1 ,
+c.DESCR ,
+c.ADDR1 ,
+c.ADDR2 ,
+c.ADDR3 ,
+c.CITY ,
+c.PIN ,
+c.TELE1 ,
+d.SUPP_NAME,
+d.SUPP_CODE,
+d.ADDR1,
+d.ADDR2,
+d.ADDR3,
+d.CITY,
+d.PIN,
+d.PAN_NO,
+d.CONT_PERS,
+d.CONT_PFX,
+d.TELE1,
+d.EMAIL_ADDR,
+d.CST_NO,
+d.TAX_REG_2,
+e.QUOT_DATE,a.TERM_TABLE,
+h.rel_amt,
+a.udf_str__1,
+UDF_STR__2,
+h.rel_after,
+i.DESCR,
+g.descr,
+s.pf_reg_No]]>
+	</queryString>
+	<field name="PO_NO" class="java.lang.String"/>
+	<field name="PO_DATE" class="java.sql.Timestamp"/>
+	<field name="ORD_AMT" class="java.math.BigDecimal"/>
+	<field name="AMOUNTINWORD" class="java.lang.String"/>
+	<field name="SITE_CODE__ORD" class="java.lang.String"/>
+	<field name="SITE_DESC" class="java.lang.String"/>
+	<field name="SITE_ADD1" class="java.lang.String"/>
+	<field name="SITE_ADD2" class="java.lang.String"/>
+	<field name="SITE_CITY" class="java.lang.String"/>
+	<field name="SECTOR_NO" class="java.lang.String"/>
+	<field name="FIN_DESCR" class="java.lang.String"/>
+	<field name="FIN_ADD1" class="java.lang.String"/>
+	<field name="FIN_ADD2" class="java.lang.String"/>
+	<field name="FIN_ADD3" class="java.lang.String"/>
+	<field name="FIN_CITY" class="java.lang.String"/>
+	<field name="FIN_PIN" class="java.lang.String"/>
+	<field name="FIN_TELE1" class="java.lang.String"/>
+	<field name="SUPP_NAME" class="java.lang.String"/>
+	<field name="SUPP_CODE" class="java.lang.String"/>
+	<field name="ADDR1" class="java.lang.String"/>
+	<field name="ADDR2" class="java.lang.String"/>
+	<field name="ADDR3" class="java.lang.String"/>
+	<field name="CITY" class="java.lang.String"/>
+	<field name="PIN" class="java.lang.String"/>
+	<field name="PAN_NO" class="java.lang.String"/>
+	<field name="CONT_PERS" class="java.lang.String"/>
+	<field name="TELE1" class="java.lang.String"/>
+	<field name="EMAIL_ADDR" class="java.lang.String"/>
+	<field name="CST_NO" class="java.lang.String"/>
+	<field name="TAX_REG_2" class="java.lang.String"/>
+	<field name="QUOT_DATE" class="java.sql.Timestamp"/>
+	<field name="TERM_TABLE" class="java.lang.String"/>
+	<field name="HOLD_PER" class="java.lang.String"/>
+	<field name="QUOT_DATE_NEW" class="java.lang.String"/>
+	<field name="ACTIVITY" class="java.lang.String"/>
+	<field name="SCHEDULE_START_DATE" class="java.sql.Timestamp"/>
+	<field name="SCHEDULE_END_DATE" class="java.sql.Timestamp"/>
+	<field name="RET_PERC" class="java.math.BigDecimal"/>
+	<field name="DEPT_NAME_NEW" class="java.lang.String"/>
+	<field name="SUPPLIER_PROD" class="java.lang.String"/>
+	<field name="PF_NO" class="java.lang.String"/>
+	<field name="NO_OF_MNTH" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="66">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="555" height="66" uuid="2fdda9ba-ec0c-4c48-8bf0-2f0ba867bbe2"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none"/>
+				<textFieldExpression><![CDATA[($F{FIN_DESCR} == null ? "" : $F{FIN_DESCR})+"\n"+
+$F{FIN_ADD1}+" "+($F{FIN_ADD2} == null ? " " : $F{FIN_ADD2})+"\n"
++($F{FIN_ADD3} == null ? "" : $F{FIN_ADD3})+" "+$F{FIN_CITY}+" "+($F{FIN_PIN} == null ? " " : $F{FIN_PIN})+" "+($F{FIN_TELE1} == null ? " " : $F{FIN_TELE1})+"\n"
++"GST No: "+$F{TAX_REG_2}+ " PAN No: "+ $F{PAN_NO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="722">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="520" width="257" height="20" uuid="1e7b667d-ea5e-4b9a-81b4-ee771e888163"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["FOR "+($F{FIN_DESCR}== null ? "" : $F{FIN_DESCR})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="254" width="556" height="30" uuid="d05b86b3-3615-4484-a436-ffbdd6a5ce96"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["With reference to your Quotation "+($F{QUOT_DATE_NEW} == null ? "" : $F{QUOT_DATE_NEW})+" and our discussions had with you; we are pleased to award the subject work to you on Item rate as per BOQ."]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="284" width="110" height="20" uuid="a2c9d2d2-cca9-418d-a0d5-97d94350758c"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Work order amount = "]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="40" width="244" height="20" uuid="d721a30e-c5fb-48d9-a605-7af0e1068ef2"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>WO NO:</b> "+($F{PO_NO} == null ? "" : $F{PO_NO})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="199" width="552" height="40" uuid="96e0365c-ed92-4480-b30b-43e2a7e123d6"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Subject: Work order for "+$F{ACTIVITY} + ($F{SUPPLIER_PROD} == null ? " " : $F{SUPPLIER_PROD}) + "at our project " + $F{SITE_DESC} + ($F{SITE_ADD1} == null ? "" : $F{SITE_ADD1}) + ($F{SITE_ADD2}== null ? "" :$F{SITE_ADD2}) + $F{SITE_CITY}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="582" width="556" height="20" uuid="05aee07b-3ebc-4a55-b876-8c25f34c6d58"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Enclosures: ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="347" y="20" width="81" height="20" uuid="0d611752-456e-4b17-9fd6-164891934fcc"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["LOI / Mail Date: "]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="91" width="90" height="15" uuid="0b2188df-819b-446f-8ec3-f86ee86e4b12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To,]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="288" y="500" width="269" height="20" uuid="163703a4-c9e8-42c3-9306-8820e45cb3fb"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="Calibri" size="11"/>
+				</textElement>
+				<text><![CDATA[Received and Accepted with all terms & Conditions]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="294" y="562" width="263" height="20" uuid="0dc6c6c8-9923-4300-a9dd-21a0cef96fef"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Authorized Signatory]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="288" y="520" width="269" height="20" uuid="9c5fcb76-c5b9-43e2-a024-1cc15b0b4d0d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["M/S " +($F{SUPP_NAME} == null ? "" : $F{SUPP_NAME})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="347" y="40" width="51" height="20" uuid="c6b2f40d-5da5-4031-a8a3-db9a97e12c63"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["WO DATE: "]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="464" width="554" height="36" uuid="7f304faa-cd3d-4fb7-9dd0-cd034a34c130"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="Calibri" size="11"/>
+				</textElement>
+				<text><![CDATA[I / We hereby acknowledge the receipt of this work order along with its all annexures & agreed to comply and execute the works to all the terms and conditions of this Works Order as per annexures.       ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="347" y="60" width="181" height="16" uuid="cdcc8c05-1283-4b4a-b416-5521f6be5157"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>SITE CODE:</b> "+$F{SITE_CODE__ORD}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="556" height="20" uuid="ac90705b-8ed1-495d-b2cb-5dfad2263daf"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="12" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[WORK ORDER]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="239" width="556" height="15" uuid="d7e89c61-6161-4c69-b0cd-8e49ef47785e"/>
+				<textElement verticalAlignment="Bottom" markup="html">
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b> Kind Attn: </b> "+($F{CONT_PERS} == null ? "" : $F{CONT_PERS})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="562" width="222" height="20" uuid="e4a35e72-c451-4bea-b683-c2cf173f842a"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Authorized Signatory]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="324" width="118" height="20" uuid="bb7729d4-8052-4fbe-ad2a-c8a77332a1e3"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Scheduled Start Date = "]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="444" width="556" height="20" uuid="fd54e134-9e3f-4f09-a3ba-8ae6e325db2a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Calibri" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Acknowledgement]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="422" width="557" height="22" uuid="c031af01-ebb3-468e-8f02-358bd6d07b52"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Kindly acknowledge receipt of the work order and return the same with sign & stamp on each page.]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="121" width="328" height="38" uuid="f458c22e-af07-47dc-a0f8-5d5e27a2130c"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ADDR1}+"\n"+
+$F{ADDR2}+"\n"+
+($F{ADDR3} == null ? "" : $F{FIN_ADD3}) + $F{CITY}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="159" width="244" height="20" uuid="0ef1f501-d142-4f76-8534-fd98cbc6f3ae"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["GST No: "+($F{TAX_REG_2} == null ? "" : $F{TAX_REG_2} )]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="244" y="159" width="130" height="20" uuid="99032ba2-02c6-45d2-93ff-aedd81ddce81"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["PAN No: " +$F{PAN_NO}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="374" y="159" width="181" height="20" uuid="72b567da-6597-46cc-893c-f62a00d653d0"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["PF No: "+($F{PF_NO} == null ? "" : $F{PF_NO})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="179" width="244" height="20" uuid="2bb3ca7c-1cb2-43d6-9440-8bbc1ffde701"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Contact Person: "+$F{CONT_PERS}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="244" y="179" width="130" height="20" uuid="d611bd0b-833a-45b0-ad1a-4fda94fc56f8"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Contact No: "+$F{TELE1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="374" y="179" width="181" height="20" uuid="24ff3385-c561-4d0f-9977-57cafb1a73db"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Email: " +($F{EMAIL_ADDR} == null ? " " : $F{EMAIL_ADDR})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="294" y="324" width="151" height="20" uuid="52000aa0-56de-4757-90cd-230d9cbc1485"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Scheduled Completion date ="]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="428" y="20" width="113" height="20" uuid="9d990a08-c274-444e-9faa-ecbad33bce46"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{QUOT_DATE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="398" y="40" width="92" height="20" uuid="dfebe56f-6d80-4040-bbd5-591af4cf4289"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PO_DATE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="110" y="284" width="218" height="20" uuid="bdd559bd-79f3-4108-ae88-7e5afdd095bd"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{ORD_AMT}+"/- + GST Only"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="79" y="304" width="478" height="20" uuid="817ee532-e9b7-47c9-a3e0-eb2a3ba1ad5e"/>
+				<textElement verticalAlignment="Top"/>
+				<textFieldExpression><![CDATA["(In Words: "+ $F{AMOUNTINWORD}+" + GST Only)"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="110" y="324" width="121" height="20" uuid="1e22ead9-c737-4362-bf72-ce4b10d60dd2"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{SCHEDULE_START_DATE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="445" y="324" width="110" height="20" uuid="8d4b2582-e915-4e9e-97ed-a6a679bb7f1f"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{SCHEDULE_END_DATE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="601" width="288" height="20" uuid="a7449c55-8379-4c21-94ca-2967a0c355b1"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: Bill of Quantities]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="621" width="288" height="20" uuid="e135096e-438a-4cb4-a584-90f5c63e0441"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: Special Conditions of Contracts]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="288" y="601" width="269" height="20" uuid="181cf01c-8d1d-4581-ac21-6e26613539f1"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: List of Forms for PF Compliances]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="288" y="621" width="269" height="20" uuid="ec4f68b0-8a1e-498b-bbb3-2338e0144c74"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: Bill Submission Procedure ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="641" width="288" height="20" uuid="340628cc-8d05-48b0-8803-8151cbe871d2"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: General Conditions of Contracts]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="288" y="641" width="269" height="20" uuid="7e2d51fd-93f4-4aa8-85b7-6604e9f1819e"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: List of documents with bills]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="661" width="288" height="20" uuid="478b868c-e834-44d6-8062-a99a4554b0f9"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: Technical data sheet]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="288" y="661" width="269" height="20" uuid="4d1cf4fe-6224-4733-92d5-a7748a3778b8"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: Penalties against unsafe act]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="681" width="288" height="20" uuid="da06ea2b-8725-43c3-8c71-d5ff5bf86f13"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: Tender Drawing]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="288" y="681" width="269" height="20" uuid="ef7f3048-aeec-4a78-843b-a9f4be147b0d"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: Covid Precautionary measures ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="701" width="288" height="20" uuid="a684f366-425f-40d6-aa3c-ad8f9653fee6"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Annexure: Tax Invoice & No claim Certificate format]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="344" width="555" height="78" uuid="a8c8e20a-dc11-40e7-89ef-5a4081d749e4"/>
+				<textElement markup="html"/>
+				<textFieldExpression><![CDATA["<b>Payment Terms :</b>"+"<br>"+
+"1) Advance       =  Nil "+"<br>"+
+"2) RA Bill       =  On Pro-rata completion of each activities."+"<br>"+
+"3) Temp. Hold    ="+ ($F{HOLD_PER} == null ? " " : $F{HOLD_PER})+ "in each bill and released in final bill"+"<br>"+
+"4) Retention     ="+ ($F{RET_PERC} == null ? " " : $F{RET_PERC}) +"all above RA bill stages valid for "+ ($F{NO_OF_MNTH} == null ? " " : $F{NO_OF_MNTH}) +" months from date of certification of final bill"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="347" y="76" width="208" height="15" uuid="ca751c3a-245a-4bfc-9ad2-1e5af1341a45"/>
+				<textElement verticalAlignment="Middle" markup="html"/>
+				<textFieldExpression><![CDATA["<b>SECTOR NO:</b> "+($F{SECTOR_NO} == null ? "" :$F{SECTOR_NO})]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement x="515" y="608" width="13" height="13" uuid="96108fe6-3d20-4546-9c10-4598d147bd12"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="515" y="628" width="13" height="13" uuid="0228dd63-5d4c-4329-8ec2-151babdc58b5"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="515" y="648" width="13" height="13" uuid="d2d3d79c-d692-4993-8ba5-6ab716c04f03"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="515" y="668" width="13" height="13" uuid="943a87c8-4722-42f3-9cab-9b4937fe6d86"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="515" y="688" width="13" height="13" uuid="a420665b-f13f-400c-998d-03ab1024a499"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="257" y="608" width="13" height="13" uuid="d7d29b34-1aed-431d-982a-dafcded7b74f"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="257" y="628" width="13" height="13" uuid="d5f9f816-899a-4935-8e3d-dc24ca75d85d"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="257" y="648" width="13" height="13" uuid="bc20ff78-298b-4f24-b1ad-bac565ddea53"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="257" y="668" width="13" height="13" uuid="2ca6b135-249a-4666-a261-18d99d3efc4e"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="257" y="688" width="13" height="13" uuid="843302ee-5061-4a70-bde3-8436fbbb10c3"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="257" y="708" width="13" height="13" uuid="a3b230f0-5ef9-41dd-8209-019d920cd353"/>
+			</rectangle>
+			<textField isBlankWhenNull="true">
+				<reportElement x="349" y="91" width="208" height="15" uuid="5f706522-ac5c-423d-889e-d9d33a6a4da0"/>
+				<textElement verticalAlignment="Middle" markup="html"/>
+				<textFieldExpression><![CDATA["<b>DEPT NAME:</b> "+($F{DEPT_NAME_NEW} == null ? "" :$F{DEPT_NAME_NEW})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="288" y="701" width="269" height="20" uuid="6962f297-7091-4ea3-8316-e8ec0e64b490"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="11"/>
+				</textElement>
+				<text><![CDATA[Others: ]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement x="515" y="708" width="13" height="13" uuid="85bb60b5-28ff-47d7-bed7-7bace85d7e9d"/>
+			</rectangle>
+			<textField>
+				<reportElement x="0" y="106" width="211" height="15" uuid="d51118ad-b6a2-47e3-934d-0389a15ad274"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["M/S " +$F{SUPP_NAME}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="20" width="244" height="20" uuid="2c2c340d-8d09-487e-9d6d-22062e2960d7"/>
+				<textElement verticalAlignment="Middle" markup="html"/>
+				<textFieldExpression><![CDATA["<b>CR NO:</b> "]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="800" splitType="Stretch">
+			<subreport>
+				<reportElement positionType="Float" x="1" y="0" width="554" height="800" uuid="ba6834c8-7f69-4808-bbfe-fe7dc777e97b"/>
+				<subreportParameter name="purc_order__to">
+					<subreportParameterExpression><![CDATA[$F{PO_NO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="supp_code__from">
+					<subreportParameterExpression><![CDATA[$F{SUPP_CODE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="supp_code__to">
+					<subreportParameterExpression><![CDATA[$F{SUPP_CODE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="item_ser__from">
+					<subreportParameterExpression><![CDATA[]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="site_code">
+					<subreportParameterExpression><![CDATA[$F{SITE_CODE__ORD}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="item_ser__to">
+					<subreportParameterExpression><![CDATA[]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="purc_order__from">
+					<subreportParameterExpression><![CDATA[$F{PO_NO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["d_cas_std_wo_hdr_print_gst.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="800">
+			<staticText>
+				<reportElement x="328" y="1" width="225" height="20" uuid="02980310-c799-4059-8a23-64911be72b64"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[ANNEXURE : II]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="20" y="31" width="535" height="20" uuid="826b5eb8-abae-4962-aa79-819c9eb7e3ae"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[SPECIAL CONDITIONS OF CONTRACT]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="20" y="92" width="535" height="49" uuid="0a8379eb-37e3-4d27-97a5-5fdb239e9fc3"/>
+				<textElement textAlignment="Justified">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["NAME OF WORK:" + $F{ACTIVITY} + " AT "+$F{SITE_DESC}+""+$F{SITE_CITY}+". From This Information from Activity"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="62" width="535" height="19" uuid="6f3444ae-d8b1-45a3-abdf-10f3dff4aa70"/>
+				<textElement textAlignment="Justified">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["PROJECT : "+$F{SITE_DESC}+""+($F{SITE_ADD1} == null ? "" : $F{SITE_ADD1})+""+($F{SITE_ADD2}== null ? "" :$F{SITE_ADD2})+""+$F{SITE_CITY}]]></textFieldExpression>
+			</textField>
+			<break>
+				<reportElement x="0" y="662" width="100" height="1" uuid="5c41308a-5218-44be-9c07-74731265a04a"/>
+			</break>
+			<subreport>
+				<reportElement x="0" y="141" width="553" height="125" uuid="92597938-3a3e-45ba-8dc1-73a2b83bbf17"/>
+				<subreportParameter name="lhr_poterm_tbl">
+					<subreportParameterExpression><![CDATA[$F{TERM_TABLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["d_cas_wo_tem_tbl.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="728">
+			<staticText>
+				<reportElement x="16" y="25" width="541" height="20" uuid="4d43754a-fa96-48e8-b77e-14fbe13327c3"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[GENERAL CONDITIONS OF CONTRACT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="130" width="514" height="76" uuid="3a695a1b-9327-4589-af43-b25adbe24bee"/>
+				<textElement textAlignment="Justified">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[	The Contractor should have to inspect the site and make familiar with the site conditions, available space for working / storage and available communication and transport facilities at his own cost. It is agreed by you that you have visited the site and after studying the site conditions, you have agreed to execute the work as per the attached BOQ and scope of work considering cost of all above parameters in quoted rates and satisfying yourselves as to the nature and character of the work to be executed, including and other relevant matters and details.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="239" width="510" height="38" uuid="a73583b9-39fc-42ce-9c6a-a91ea7943c81"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	Standard tax / TDS will be deducted in each invoice. If the same is not applicable or applicable at concessional rates than the standards prescribed, then the Contractor shall intimate the same in writing, with supporting documents, along with the Bill/Invoice.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="313" width="510" height="55" uuid="d8398c9a-624f-44fa-b0f0-3c8709b42634"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	The Contractor will submit all the R.A./ Final Bill along with certified joint measurements certified by Project Manager (PM). Work done report certified by PM for RA Bills and Work completion statement shall submitted along with bill. Contractor shall submit Reconciliation statement certified by PM of Developer supplied material along with each RA/ Final bill.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="407" width="510" height="17" uuid="28247321-5247-4053-92ea-b5ed97cef693"/>
+				<text><![CDATA[	It shall be on Item Rate and actual work done basis and standard measurement system.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="461" width="510" height="80" uuid="baa85044-190d-4d52-b1b7-75a9d4f3a0cc"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	If the quality of work /service provided by you / not accepted by PM because of not as per their specifications then it shall be again prepared by you with your own material in required specification / format  without any extra payment and extra time.
+	Failing above, we at our discretion may replace the work done by we appointed Contractor and debit/recover the expenditure involved/incurred along with 20% additional costs towards overheads and penal charges from Vendor.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="586" width="510" height="142" uuid="bc31d274-d78c-45b8-be24-5e65d7b10de9"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	The Contractor shall insure all his employees as well as of the employees of his Sub – Contractor, against Employer’s Liability under the Workmen’s Compensation Act, labour insurance, contract labour act, minimum wages etc. and shall indemnify the Developer against all claims arising under the same for injuries, accidents at the works. Developer will have no responsibility what–so–ever for any claims arising
+	in this regard. (If Contractor has not registered or paid against the insurance compliances like PF / ESIC, etc. and  If  Contractor’s  outstanding  bill amount  is  sufficient to recover than Developer may pay for the
+	same to concerned government department & the same amount shall be recovered from the bills of Contractor at actual + 20% overheads ). You need to submit copy of Insurance policy with 1st RA bill.
+	Contractor shall take Accidental Insurance Policy for their worker/employee & submit the copy of Policy to us.
+]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="16" y="45" width="539" height="31" uuid="ddd1c4e8-f701-4197-b566-a8dcd9ecf63f"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["PROJECT : "+$F{SITE_DESC}+""+($F{SITE_ADD1} == null ? "" : $F{SITE_ADD1})+""+($F{SITE_ADD2}== null ? "" :$F{SITE_ADD2})+""+$F{SITE_CITY}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="16" y="76" width="539" height="34" uuid="23dfd26d-a2dc-4b76-92e6-851d202f589a"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["NAME OF WORK:" + $F{ACTIVITY} + " AT "+$F{SITE_DESC}+""+$F{SITE_CITY}+". From This Information from Activity"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="16" y="110" width="25" height="20" uuid="68c53d66-a330-4318-bafc-572e3e0d5951"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[1.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="110" width="514" height="20" uuid="e0c857d4-71bb-476a-838f-265c93667aa7"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[LOCATION OF SITE ACCESSIBILITY :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="16" y="219" width="25" height="20" uuid="f99d070f-416d-4311-917f-99862b9dfc04"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[2.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="219" width="510" height="20" uuid="9c68ef20-bfad-4b6c-9e1d-9a6371f06005"/>
+				<textElement textAlignment="Justified">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[ TAXES AND DUTIES :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="16" y="293" width="25" height="20" uuid="403db0a2-c5ba-4d3d-b7a8-976ab8588d46"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[3.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="293" width="510" height="20" uuid="d9dfdbdf-2f6b-4ce4-acfb-cd6dc43f1e32"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[BILLS :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="16" y="387" width="25" height="20" uuid="16076af8-5a3a-4684-b587-8ff0a56ebcd4"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[4.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="387" width="510" height="20" uuid="8822bcea-1e1d-411f-be68-0f1b55c6d84c"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[MODE OF MEASUREMENT:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="16" y="441" width="25" height="20" uuid="cba33598-c56f-4b83-ab59-10386bc0e24f"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[5.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="441" width="510" height="20" uuid="7020013b-02a9-4f0f-97a9-61f47dc73fb2"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[REJECTION :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="18" y="556" width="25" height="30" uuid="23904b80-f3b6-4104-a14c-cf03677fd922"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[6.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="556" width="510" height="30" uuid="d7d0297e-e062-4a8b-8502-a02fb1bda9d6"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[INSURANCE : (This clause need to comply by Contractor if required / applicable for this contract without any extra charges to developer )]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="389" y="11" width="162" height="14" uuid="e596d49a-a4ff-4742-b295-26576bf50066"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[ANNEXURE : III]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="712" width="100" height="1" uuid="c9c8b3fb-0d91-4fbd-ba42-4f34f85c8d6c"/>
+			</break>
+		</band>
+		<band height="802">
+			<staticText>
+				<reportElement x="41" y="13" width="512" height="128" uuid="eb1e5531-ff11-4546-86ff-796fab59bb45"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[Contractor shall indemnify every member, officer and employee of the Developer, against all actions, proceedings, claims, demands, costs and expenses whatsoever arising out of or in connection with the works and all actions, proceedings, claims, compensation, demands, costs and expenses which may be made against the Developer for or in respect of or arising out of any failure by Contractor in the performance of his obligations under the Contract Document. The Developer shall not be liable for or in respect of any demand or compensation payable by law in respect of or in consequence of any accident, death or injury to any workman or other person in the employment of Contractor or his Sub-Contractor and Contractor shall indemnify and keep indemnified the Developer against all such damages and compensations and against all claims, damages, proceedings, costs, charges and expenses whatsoever in respect thereof or in relation thereto.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="543" width="510" height="171" uuid="7c2e95f9-502f-4a26-91c7-05be4359fe12"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[ 	In respect of all labour directly or indirectly employed in WORK for the performance of Contractor part of this contract. Contractor shall comply with or cause to be complied with all the rules and regulations of the local Sanitary and other Authorities and as framed by the Developer from time to time for the protection of health and sanitary arrangements for all workers and as required under various welfare statutes.
+
+	The Contractor shall be fully responsible for planning, reporting, implementing and monitoring all HSE requirements and compliance of all laws & statutory requirements. The Contractor shall also ensure that the HSE requirements are clearly understood & faithfully implemented at all levels at site.
+
+	The Contractor shall promote and develop consciousness about Health, Safety and Environment among all personnel working for the Contractor. Regular awareness programmes and fabrication shop/work site meetings shall be arranged on HSE activities to cover hazards involved in various operations during construction.
+
+	No extra claims on these accounts are admissible.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="16" y="141" width="25" height="33" uuid="abb4ff0b-edd3-4934-95a1-35befa0308d1"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[7.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="141" width="512" height="33" uuid="ca6436b7-5943-4aba-8572-d1c6436e6bc7"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[LABOUR LAW : (This clause need to comply by Contractor if required / applicable for this contract without any extra charges to developer )]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="174" width="510" height="30" uuid="c2f910ea-f1ec-45f4-83ba-b81695304c6f"/>
+				<text><![CDATA[	The Contractor shall comply with the provisions of all the Labour Laws as applicable to this contract & shall indemnify the Developer against all claims arising under the same.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="218" width="510" height="20" uuid="8a8d977e-6aad-4621-ba1e-a4515686cb2b"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Contractor to pay wages direct to his labourers]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="238" width="514" height="144" uuid="058d31d5-7bb8-436f-88a4-b0476dc3571d"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	The Contractor shall effect the payment of wages to his labourers directly without the intervention of any intermediary and no amount by way of commission or otherwise shall be deducted or recovered from the wages of the workmen. The Contractor shall maintain all the Forms, Registers ad Rolls as required under the Payment of Wages Act, Minimum Wages Act, Contract Labour (R&A) Act and other applicable legislations.
+
+	Minimum Wages Act - Contractor shall not pay less than what is  provided under Minimum Wages Act to
+labourers engaged by him on work.
+	Contractor shall secure full safety of the workers / employees engaged by him and shall take at his own cost, insurances and such other safety regulations for the said purpose.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="382" width="510" height="14" uuid="a6cd87f4-22fd-4ce7-b3f3-50cfe2af75b4"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Contractor to indemnify the Developer]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="396" width="510" height="115" uuid="99ade0ab-4ea4-45e5-aba0-3e368caa2b96"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[Contractor shall indemnify every member, officer and employee of the Developer, against all actions, proceedings, claims, demands, costs and expenses whatsoever arising out of or in connection with the works and all actions, proceedings, claims, compensation, demands, costs and expenses which may be made against the Developer for or in respect of or arising out of any failure by Contractor in the performance of his obligations under the Contract Document. The Developer shall not be liable for or in respect of any demand or compensation payable by law in respect of or in consequence of any accident, death or injury to any workman or other person in the employment of Contractor or his Sub-Contractor and Contractor shall indemnify and keep indemnified the Developer against all such damages and compensations and against all claims, damages, proceedings, costs, charges and expenses whatsoever in respect thereof or in relation thereto.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="523" width="510" height="20" uuid="7e7ec8f0-9d69-445b-9b65-a3d406fb02b1"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Health & sanitary arrangements for workers]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="45" y="724" width="510" height="20" uuid="965fb9bd-0841-465d-8b5b-1f0a1cf1ed17"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Regular Health Check-ups]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="744" width="510" height="58" uuid="38ded648-995c-437a-9b0f-7b9941713c5b"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[Contractor will have to organize at his own expenses Doctor’s visit into a labour camp on a regular intervals. Special precaution will have to be taken during monsoon. Oral doses / blood check up shall be done free of cost by Municipal Corporation doctors to control Malaria / Dengue. All the necessary documentation and records shall be maintained by Contractor.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="0" width="510" height="13" uuid="90b2f800-ccac-4240-bd29-7970ef7c9aed"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Contractor to indemnify the Developer]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="788" width="100" height="1" uuid="f6b88671-2f90-410f-a2bd-8d1cfb688df7"/>
+			</break>
+		</band>
+		<band height="790">
+			<staticText>
+				<reportElement x="43" y="53" width="510" height="43" uuid="57aa91c2-e236-4e0e-8756-8e16b26977b6"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[a.	Contractor shall obtain G.S.T registration Number and Documentary evidence of the same shall be submitted to the employer along with acceptance of the work order. All invoices in respect of subject works shall be quoted with G.S.T. Registration certificate Number.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="107" width="510" height="266" uuid="6245aaf8-bf80-4190-bd2a-2c0fb9419732"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[b.	Contractor shall be solely liable for statutory compliance in respect of all applicable laws of land which inter-alia includes central/state labour laws and regulations/rules made there under including but not limited to Compliance of provisions of Contract Labour (Regulation and Abolition) Act, 1970, Employees State Insurance Act, 1948, Employees Provident Funds and Miscellaneous Provisions Act, 1952, Minimum Wages Act, 1948, Payment of Bonus Act, 1965, Payment of Gratuity Act, 1972, Payment of Wages Act, 1936, Workmen's Compensation Act, 1923, Maternity Benefit Act, 1961,, Interstate Migrant Workmen (regulation of Employment and Conditions of Service) Act, 1979. Mines Act, 1932 or any modification thereof. The Contractor shall be solely responsible for maintenance of records and filing of various forms/ returns prescribed under all applicable Central/State labour laws and regulations/rules made there under in respect of employees employed by it.
+
+Contractor shall also comply with the provisions of all other Acts, Rules & Regulations connected with the employment of labour for the purpose of execution of this contract etc. You will indemnify Developer against all such liabilities arising out from non compliance of such statutory requirements. You will be responsible for all types of Insurance and workmen compensation policy for the entire contract value etc for your men, materials etc. and all the charges for the same are included in your contract value. You shall be submitting a copy of Workmen compensation policy at our HO. within 15 days from the start of work at site. The Policies should be valid for entire period of the Contract / extended period including renewal premium.
+
+Contractor has to complied with all the prevailing laws relating to labour engaged in project & if due to his default CASL has to pay any compensation then, Contractor will have to reimburse.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="373" width="510" height="41" uuid="88377102-0a40-4a63-8db0-10c618353434"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[c.	The Developer shall be entitled to deduct/adjust from amount payable to the Contractor any dues, wages, compensation on accident or death, expenses paid by the Developer in compliance with the applicable laws, in respect of employees of the Contractor.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="18" y="428" width="25" height="20" uuid="969b0b28-4c9c-482b-96a0-34708206b3e3"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[9.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="428" width="510" height="20" uuid="081f2172-163a-460f-9c5a-d2d0db088128"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[CHILD LABOUR :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="448" width="510" height="18" uuid="4d453089-bdf9-40e7-9887-77955194e631"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	The Contractor shall strictly not deploy Child Labour (below 18 years) on works.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="478" width="510" height="20" uuid="6e4f25dd-0a21-40f2-8fe0-773d6da43eb5"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[SAFETY REGULATION :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="18" y="478" width="25" height="20" uuid="21c49cf0-2646-4e07-ada1-8dff3f526ffb"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[10.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="498" width="510" height="28" uuid="b7308216-f804-41fc-af6a-44a7a44e4b9c"/>
+				<text><![CDATA[	Any incident/ accidents or losses done by your side will be your sole liability. You will take care of your labours/ machineries, tools etc as well as other ongoing works activities on site.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="541" width="510" height="20" uuid="dd36b1f3-cf4e-477a-9987-82067ad2d532"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[	Accident Prevention & Personal Protection:  ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="561" width="510" height="83" uuid="90bf46e0-33ce-4740-bee8-60aeda8e6b81"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	a.	The Contractor shall ensure at his own cost of fire and safety provisions as per the safety requirements of the Developer or BIS or National Safety Council of India and safety manuals for labour. First aid facilities at easily accessible place shall be provided by the Contractor at his cost as per provisions of labour act or as advised by the Developer. All workmen & representative at site shall wear safety, helmets, safety shoes, safety jackets, safety goggles etc. If you will not provide to your labors; Developer will provided it and the same amount will debited from your bills.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="648" width="512" height="30" uuid="7e8abcdc-fcd4-4bc9-8396-a66d0abccc6c"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	b.	The Contractor shall ensure and arrange at his own cost fire and safety provisions as per safety code of C.P.W.D., Bureau of Indian Standards and safety manuals. ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="678" width="510" height="26" uuid="7e077462-65d3-4f18-9b00-e31d8690dfac"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	c.	The Contractor shall indemnify the Developer from any consequence arising due to Contractor’s failure in respect to safety compliance.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="704" width="510" height="70" uuid="ec4f9136-6509-4f32-97d7-2aba1fe0aecf"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	d.	The Contractor shall document any identified instances of noncompliance with safety requirements by its workers and sub-Contractors. Where any worker or sub-Contractor breaches safety requirements and
+	There by presents a threat of serious injury or death to any person, the Contractor shall remove that worker or sub-Contractor from the project site for the duration of the project.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="45" y="23" width="510" height="30" uuid="30c0f346-1862-444d-8afa-6dfe9596b135"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[STATUTORY COMPLIANCE : (This clause need to comply by Contractor if required / applicable for this contract without any extra charges to developer )]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="20" y="23" width="25" height="30" uuid="457ed8c2-ad52-435a-a534-aacff466fe29"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[8.]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="774" width="100" height="1" uuid="d6396766-6f18-47dd-b843-5581363f8258"/>
+			</break>
+		</band>
+		<band height="432">
+			<staticText>
+				<reportElement x="43" y="0" width="510" height="45" uuid="558f1bd4-009f-4188-9e9e-1c47be0002fe"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	e.	All critical injuries shall be reported promptly to the Developer. The report shall cover type, nature cause, Physician’s report and sections for prevention of those types again to ensure effective enforcement of the rules and regulations relating to safety precautions, arrangement made by the Contractor shall be open to inspection by the Developer.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="61" width="510" height="20" uuid="d577c336-a184-43eb-a18f-78aebe3ee8d9"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[FORCE MAJEURE : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="18" y="61" width="25" height="20" uuid="37610049-6267-4f33-9e00-b100cc7eae97"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[11.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="81" width="510" height="70" uuid="7e338930-b8a3-42e2-a1de-40865f3da852"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[	If either Party is unable to carry out his obligations under this contract due to an Act of God, War, Riot, blockade, strike, lockout, flood or Earthquake or Government orders/restriction not within the control  of the parties hereto which results in an inability, in spite of due diligence of either party in performing its obligation in time, this contract shall remain effective, but the obligation which the affected party is unable to carry out shall be suspended for a period equal to the duration of the relevant circumstances.
+	Notwithstanding anything contained to the contrary it is clarified that economic hardship, non-availability of material, labour and transport shall not constitute Force Majeure.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="165" width="510" height="20" uuid="98dc6740-f368-4433-8635-33563b0dd161"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[ARBITRATION :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="18" y="165" width="25" height="20" uuid="a767441c-58b6-47b7-96f4-ea63a67b27b1"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[12.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="185" width="510" height="53" uuid="87c76cb8-5c82-4103-89d2-c66445cd9aa5"/>
+				<textElement textAlignment="Justified"/>
+				<text><![CDATA[All disputes and differences arising out of or in connection with the contract whether during the progress of work or after completion shall be referred to and settled by the arbitration by two arbitrators one to be nominated by the Contractor and one to be nominated by the employer. In the event of the arbitrators disagreeing, it shall be referred to an umpire to be nominated by the two arbitrators before proceeding with the arbitration. The decision of the umpire shall be final and binding on both the parties.
+
+For the purpose of this clause the provisions of the Indian arbitration and Reconciliation Act 1996 with relevant amendments shall be applicable subject to Mumbai jurisdiction.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="253" width="510" height="20" uuid="feb6fa76-76fb-47fa-a5de-bd3887db23ba"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[TERMINATION OF CONTRACT :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="18" y="253" width="25" height="20" uuid="011a66db-f23f-478a-9255-2dc7e1db54cb"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[13.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="43" y="273" width="510" height="95" uuid="ed3a7ffc-a901-447a-bf09-f0ad4edde600"/>
+				<text><![CDATA[	In case of non-performance by the Contractor, as determined by Developer, this contract can be terminated by Developer after giving due notice to the Contractor and no compensation will be payable by Developer on all the completed works and upon termination it will be property of Developer. The decision of the Developer, in this regard, shall be final & binding on Contractor.
+
+	All advances paid by us to you against this order shall be fully refunded by you to us immediately, with interest @ 12% per annum.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="382" width="512" height="20" uuid="add1f5d2-81e4-438f-a254-4b6fc912d467"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[DOCUMENTS OF CONTRACT :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="18" y="382" width="25" height="20" uuid="e1b8f521-6068-46ca-8592-3c91ab190e82"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[14.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="402" width="512" height="30" uuid="52901588-5c55-4f81-ac9c-2bbe16993a7e"/>
+				<text><![CDATA[	This order to the extent modified herein shall supersede any condition mentioned in the previous  emails or any other correspondence between us and shall be form a binding contract between us.]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>
